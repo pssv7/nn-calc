@@ -80,7 +80,7 @@ Options:
 ### Pip
 
 ```shell
-pip install nn_calc
+pip install nn-calc
 ```
 
 ### git repository
