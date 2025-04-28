@@ -137,17 +137,16 @@ def main(
     with per-layer overrides for strides, kernels, and paddings.
     """
     if model.lower() == "cnn":
-        # ── Parse per-layer lists ────────────────────────
+        # Parse per-layer lists
         S = parse_arg_list(strides,      num_layers, stride)
         K = parse_arg_list(kernel_sizes, num_layers, kernel_size)
         P = parse_arg_list(paddings,     num_layers, padding)
 
-        # ── Treat '0' in strides/kernels as "use global default" ──
+        # Treat '0' in strides/kernels as "use global default"
         S = [s if s > 0 else stride      for s in S]
         K = [k if k > 0 else kernel_size for k in K]
-        # (P may legitimately be 0 → no padding; keep as-is)
 
-        # ── Decide output channels per layer ──────────────
+        # Decide output channels per layer
         ctx     = click.get_current_context()
         out_src = ctx.get_parameter_source("out_channels")
         if out_src == ParameterSource.DEFAULT:
@@ -158,11 +157,11 @@ def main(
             EC_out = [out_channels] * num_layers
         EC_in  = [in_channels] + EC_out[:-1]
 
-        # ── Basic channel validation ───────────────────────
+        # Basic channel validation
         if any(ch <= 0 for ch in EC_in + EC_out):
             raise click.BadParameter(f"All channels must be >0; got in={EC_in}, out={EC_out}")
 
-        # ── Validate spatial dims through encoder ──────────
+        # Validate spatial dims through encoder
         h, w = input_height, input_width
         for i, (ki, si, pi) in enumerate(zip(K, S, P), start=1):
             nh = math.floor((h + 2*pi - ki) / si) + 1
@@ -175,7 +174,7 @@ def main(
 
         enc = build_encoder(EC_in, EC_out, K, S, P)
 
-        # ── Validate spatial dims through decoder ──────────
+        # Validate spatial dims through decoder
         for i, (ki, si, pi) in enumerate(zip(K[::-1], S[::-1], P[::-1]), start=1):
             nh = (h - 1)*si - 2*pi + ki
             nw = (w - 1)*si - 2*pi + ki
@@ -190,7 +189,7 @@ def main(
         print_block(dec, "Decoder Configuration")
 
     else:
-        # ── Recurrent modes ───────────────────────────────
+        # Recurrent modes
         if in_channels <= 0 or out_channels <= 0:
             raise click.BadParameter("--in-channels and --out-channels must be >0")
 
